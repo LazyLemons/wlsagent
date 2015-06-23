@@ -76,7 +76,11 @@ public class JDBCTest extends TestUtils implements Test {
         int capacity;
         int activeCount;
         int waitingCount;
-
+		int available; // The number of database connections that are currently idle and available to be used by applications in this instance of the data source
+		int unavailable; // The number of connections currently in use by applications or being tested in this instance of the data source.
+		int highestAvailable; // Highest number of database connections that were idle and available to be used by an application at any time in this instance of the data source since the data source was deployed
+		int highWait; // The longest connection reserve wait time in seconds.
+		
         // Parses HTTP query params
         for (String s : Arrays.asList(params.split("\\|"))) {
             datasources.put(s.split(",", 2)[0], s.split(",", 2)[1]);
@@ -88,13 +92,24 @@ public class JDBCTest extends TestUtils implements Test {
             for (ObjectName datasourceRuntime : jdbcDataSourceRuntimeMbeans) {
                 String datasourceName = (String)proxy.getAttribute(datasourceRuntime, "Name");
                 if (datasources.containsKey("*") || datasources.containsKey(datasourceName)) {
-                    capacity = (Integer)proxy.getAttribute(datasourceRuntime, "CurrCapacity");
-                    activeCount = (Integer)proxy.getAttribute(datasourceRuntime, "ActiveConnectionsCurrentCount");
-                    waitingCount = (Integer)proxy.getAttribute(datasourceRuntime, "WaitingForConnectionCurrentCount");
+					
+                    capacity 		 = (Integer)proxy.getAttribute(datasourceRuntime, "CurrCapacity");
+                    activeCount 	 = (Integer)proxy.getAttribute(datasourceRuntime, "ActiveConnectionsCurrentCount");
+                    waitingCount 	 = (Integer)proxy.getAttribute(datasourceRuntime, "WaitingForConnectionCurrentCount");
+                    available 		 = (Integer)proxy.getAttribute(datasourceRuntime, "NumAvailable");
+					unavailable 	 = (Integer)proxy.getAttribute(datasourceRuntime, "HighestNumUnavailable");
+					highestAvailable = (Integer)proxy.getAttribute(datasourceRuntime, "HighestNumAvailable");
+					highWait         = (Integer)proxy.getAttribute(datasourceRuntime, "WaitSecondsHighCount");
+					
                     StringBuilder out = new StringBuilder();
                     out.append("jdbc-" + datasourceName + "-capacity=" + capacity + " ");
                     out.append("jdbc-" + datasourceName + "-active=" + activeCount + " ");
-                    out.append("jdbc-" + datasourceName + "-waiting=" + waitingCount);
+                    out.append("jdbc-" + datasourceName + "-waiting=" + waitingCount + " ");
+					out.append("jdbc-" + datasourceName + "-available=" + available + " ");
+					out.append("jdbc-" + datasourceName + "-unavailable=" + unavailable + " ");
+					out.append("jdbc-" + datasourceName + "-highestAvailable=" + highestAvailable + " ");
+					out.append("jdbc-" + datasourceName + "-maxWaitSeconds=" + highWait + "s ");
+
                     output.add(out.toString());
                     thresholds = datasources.get("*") != null ? datasources.get("*") : datasources.get(datasourceName);
                     warning = Long.parseLong(thresholds.split(",")[0]);
