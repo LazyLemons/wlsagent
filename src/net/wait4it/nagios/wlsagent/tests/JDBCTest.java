@@ -60,10 +60,6 @@ public class JDBCTest extends TestUtils implements Test {
         List<String> message = new ArrayList<String>();
         int code = 0;
 
-        // Test thresholds
-        long warning;
-        long critical;
-        String thresholds = "";
         Map<String,String> datasources = new HashMap<String,String>();
 
         // Test code for a specific datasource
@@ -100,21 +96,17 @@ public class JDBCTest extends TestUtils implements Test {
                     unavailable 	 = (Integer)proxy.getAttribute(datasourceRuntime, "NumUnavailable");
                     highestAvailable = (Integer)proxy.getAttribute(datasourceRuntime, "HighestNumAvailable");
                     highWait         = (Integer)proxy.getAttribute(datasourceRuntime, "WaitSecondsHighCount");
-					
-                    StringBuilder out = new StringBuilder();
-                    out.append("jdbc-" + datasourceName + "-capacity=" + capacity + " ");
-                    out.append("jdbc-" + datasourceName + "-active=" + activeCount + " ");
-                    out.append("jdbc-" + datasourceName + "-waiting=" + waitingCount + " ");
-                    out.append("jdbc-" + datasourceName + "-available=" + available + " ");
-                    out.append("jdbc-" + datasourceName + "-unavailable=" + unavailable + " ");
-                    out.append("highestAvailable=" + highestAvailable + " ");
-                    out.append("maxWait=" + highWait + "s ");
 
-                    output.add(out.toString());
-                    thresholds = datasources.get("*") != null ? datasources.get("*") : datasources.get(datasourceName);
-                    warning = Long.parseLong(thresholds.split(",")[0]);
-                    critical = Long.parseLong(thresholds.split(",")[1]);
-                    testCode = checkResult(waitingCount, critical, warning);
+                    String out = "";
+                    out += "jdbc-" + datasourceName + "-capacity=" + capacity + " ";
+                    out += "jdbc-" + datasourceName + "-active=" + activeCount + " ";
+                    out += "jdbc-" + datasourceName + "-waiting=" + waitingCount + " ";
+                    out += "jdbc-" + datasourceName + "-available=" + available + " ";
+                    out += "jdbc-" + datasourceName + "-unavailable=" + unavailable + " ";
+                    out += "highestAvailable=" + highestAvailable + " ";
+                    out += "maxWait=" + highWait + "s ";
+
+                    output.add(out);
 
                     double percentAvailable = ((double) available / (double) highestAvailable) * 100D;
                     double percentUnavailable = ((double) unavailable / (double) highestAvailable) * 100D;
@@ -125,7 +117,7 @@ public class JDBCTest extends TestUtils implements Test {
 
                     } else if (percentUnavailable >= 10) {
                         message.add(datasourceName + " - " + (int) percentUnavailable + "% unavailable (" + unavailable + "/" + highestAvailable + " unavailable)");
-                        testCode = 2;
+                        testCode = 1;
                     } else {
                         message.add(datasourceName + " - " + (int) percentUnavailable + "% unavailable - " + (int) percentAvailable + "% available");
                     }
