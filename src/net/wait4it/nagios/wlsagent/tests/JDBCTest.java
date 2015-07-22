@@ -63,7 +63,7 @@ public class JDBCTest extends TestUtils implements Test {
         Map<String,String> datasources = new HashMap<String,String>();
 
         // Test code for a specific datasource
-        int testCode = 0;
+        int testCode = Status.OK.getCode();
 
         // Message prefix
         String prefix = "availability: ";
@@ -98,11 +98,11 @@ public class JDBCTest extends TestUtils implements Test {
                     highWait         = (Integer)proxy.getAttribute(datasourceRuntime, "WaitSecondsHighCount");
 
                     String out = "";
-                    out += "jdbc-" + datasourceName + "-capacity=" + capacity + " ";
-                    out += "jdbc-" + datasourceName + "-active=" + activeCount + " ";
-                    out += "jdbc-" + datasourceName + "-waiting=" + waitingCount + " ";
-                    out += "jdbc-" + datasourceName + "-available=" + available + " ";
-                    out += "jdbc-" + datasourceName + "-unavailable=" + unavailable + " ";
+                    out += "capacity=" + capacity + " ";
+                    out += "active=" + activeCount + " ";
+                    out += "waiting=" + waitingCount + " ";
+                    out += "available=" + available + " ";
+                    out += "unavailable=" + unavailable + " ";
                     out += "highestAvailable=" + highestAvailable + " ";
                     out += "maxWait=" + highWait + "s ";
 
@@ -112,12 +112,12 @@ public class JDBCTest extends TestUtils implements Test {
                     double percentUnavailable = ((double) unavailable / (double) highestAvailable) * 100D;
 
                     if (percentAvailable <= 10) {
-                        testCode = 2;
+                        testCode = Status.CRITICAL.getCode();
                         message.add(datasourceName + " - " + (int) percentAvailable + "% available (" + available + "/" + highestAvailable + " available)");
 
                     } else if (percentUnavailable >= 10) {
                         message.add(datasourceName + " - " + (int) percentUnavailable + "% unavailable (" + unavailable + "/" + highestAvailable + " unavailable)");
-                        testCode = 1;
+                        testCode = Status.WARNING.getCode();
                     } else {
                         message.add(datasourceName + " - " + (int) percentUnavailable + "% unavailable - " + (int) percentAvailable + "% available");
                     }
