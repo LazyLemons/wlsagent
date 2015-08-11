@@ -1,19 +1,18 @@
 /**
  * This file is part of Wlsagent.
- *
+ * <p>
  * Wlsagent is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+ * <p>
  * Wlsagent is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU General Public License
  * along with Wlsagent. If not, see <http://www.gnu.org/licenses/>.
- * 
  */
 
 package net.wait4it.nagios.wlsagent.tests;
@@ -32,14 +31,14 @@ import net.wait4it.nagios.wlsagent.core.WLSProxy;
 
 /**
  * Gets statistics for JDBC datasources.
- * 
+ *
  * The following metrics are available:
- * 
+ *
  *   - The datasource current pool size
  *   - The active connection count
  *   - The number of threads waiting for
  *     a connection from the pool
- * 
+ *
  * @author Yann Lambret
  * @author Kiril Dunn
  *
@@ -48,7 +47,7 @@ public class JDBCTest extends TestUtils implements Test {
 
     /**
      * WebLogic JDBC datasources stats.
-     * 
+     *
      * @param proxy   an applicative proxy for the target WLS instance
      * @param params  a pipe separated list of datasource names, or
      *                a wildcard character (*) for all datasources
@@ -60,22 +59,22 @@ public class JDBCTest extends TestUtils implements Test {
         List<String> message = new ArrayList<String>();
         int code = 0;
 
-        Map<String,String> datasources = new HashMap<String,String>();
+        Map<String, String> datasources = new HashMap<String, String>();
 
         // Test code for a specific datasource
         int testCode = Status.OK.getCode();
 
         // Message prefix
-        String prefix = "availability: ";
+        String prefix = "";
 
         // Performance data
         int capacity;
         int activeCount;
         int waitingCount;
         int available; // The number of database connections that are currently idle and available to be used by applications in this instance of the data source
-		int unavailable; // The number of connections currently in use by applications or being tested in this instance of the data source.
-		int highestAvailable; // Highest number of database connections that were idle and available to be used by an application at any time in this instance of the data source since the data source was deployed
-		int highWait; // The longest connection reserve wait time in seconds.
+        int unavailable; // The number of connections currently in use by applications or being tested in this instance of the data source.
+        int highestAvailable; // Highest number of database connections that were idle and available to be used by an application at any time in this instance of the data source since the data source was deployed
+        int highWait; // The longest connection reserve wait time in seconds.
 
         // Parses HTTP query params
         for (String s : Arrays.asList(params.split("\\|"))) {
@@ -86,16 +85,16 @@ public class JDBCTest extends TestUtils implements Test {
             ObjectName jdbcServiceRuntimeMbean = proxy.getMBean("JDBCServiceRuntime");
             ObjectName[] jdbcDataSourceRuntimeMbeans = proxy.getMBeans(jdbcServiceRuntimeMbean, "JDBCDataSourceRuntimeMBeans");
             for (ObjectName datasourceRuntime : jdbcDataSourceRuntimeMbeans) {
-                String datasourceName = (String)proxy.getAttribute(datasourceRuntime, "Name");
+                String datasourceName = (String) proxy.getAttribute(datasourceRuntime, "Name");
                 if (datasources.containsKey("*") || datasources.containsKey(datasourceName)) {
-					
-                    capacity 		 = (Integer)proxy.getAttribute(datasourceRuntime, "CurrCapacity");
-                    activeCount 	 = (Integer)proxy.getAttribute(datasourceRuntime, "ActiveConnectionsCurrentCount");
-                    waitingCount 	 = (Integer)proxy.getAttribute(datasourceRuntime, "WaitingForConnectionCurrentCount");
-                    available 		 = (Integer)proxy.getAttribute(datasourceRuntime, "NumAvailable");
-                    unavailable 	 = (Integer)proxy.getAttribute(datasourceRuntime, "NumUnavailable");
-                    highestAvailable = (Integer)proxy.getAttribute(datasourceRuntime, "HighestNumAvailable");
-                    highWait         = (Integer)proxy.getAttribute(datasourceRuntime, "WaitSecondsHighCount");
+
+                    capacity = (Integer) proxy.getAttribute(datasourceRuntime, "CurrCapacity");
+                    activeCount = (Integer) proxy.getAttribute(datasourceRuntime, "ActiveConnectionsCurrentCount");
+                    waitingCount = (Integer) proxy.getAttribute(datasourceRuntime, "WaitingForConnectionCurrentCount");
+                    available = (Integer) proxy.getAttribute(datasourceRuntime, "NumAvailable");
+                    unavailable = (Integer) proxy.getAttribute(datasourceRuntime, "NumUnavailable");
+                    highestAvailable = (Integer) proxy.getAttribute(datasourceRuntime, "HighestNumAvailable");
+                    highWait = (Integer) proxy.getAttribute(datasourceRuntime, "WaitSecondsHighCount");
 
                     String out = "";
                     out += "capacity=" + capacity + ";;;0;150; ";
@@ -108,19 +107,14 @@ public class JDBCTest extends TestUtils implements Test {
 
                     output.add(out);
 
-                    double percentAvailable = ((double) available / (double) capacity) * 100D;
                     double percentUnavailable = ((double) unavailable / (double) capacity) * 100D;
 
-                    if (percentAvailable <= 10) {
-                        testCode = Status.CRITICAL.getCode();
-                        message.add(datasourceName + " - " + (int) percentAvailable + "% available (" + available + "/" + highestAvailable + " available)");
+                    message.add((int) percentUnavailable + "% unavailable (" + unavailable + "/" + capacity + ") - " + available + " available");
 
-                    } else if (percentUnavailable >= 10) {
-                        message.add(datasourceName + " - " + (int) percentUnavailable + "% unavailable (" + unavailable + "/" + highestAvailable + " unavailable)");
-                        testCode = Status.WARNING.getCode();
-                    } else {
-                        message.add(datasourceName + " - " + (int) percentUnavailable + "% unavailable - " + (int) percentAvailable + "% available");
+                    if (percentUnavailable >= 10) {
+                        testCode = Status.CRITICAL.getCode();
                     }
+
 
                     if (testCode == Status.WARNING.getCode() || testCode == Status.CRITICAL.getCode()) {
                         code = (testCode > code) ? testCode : code;
@@ -136,7 +130,7 @@ public class JDBCTest extends TestUtils implements Test {
 
         for (Status status : Status.values()) {
             if (code == status.getCode()) {
-                result.setStatus(status);           
+                result.setStatus(status);
                 break;
             }
         }
