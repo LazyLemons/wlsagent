@@ -98,18 +98,18 @@ public class JDBCTest extends TestUtils implements Test {
                     highWait         = (Integer)proxy.getAttribute(datasourceRuntime, "WaitSecondsHighCount");
 
                     String out = "";
-                    out += "capacity=" + capacity + ";;;0;150;";
-                    out += "active=" + activeCount + ";;;0;150;";
-                    out += "waiting=" + waitingCount + ";;;0;150;";
-                    out += "available=" + available + ";;;0;150;";
-                    out += "unavailable=" + unavailable + ";;;0;150;";
-                    out += "highestAvailable=" + highestAvailable + ";;;0;150;";
+                    out += "capacity=" + capacity + ";;;0;150; ";
+                    out += "active=" + activeCount + ";;;0;150; ";
+                    out += "waiting=" + waitingCount + ";;;0;150; ";
+                    out += "available=" + available + ";;;0;150; ";
+                    out += "unavailable=" + unavailable + ";;;0;150; ";
+                    out += "highestAvailable=" + highestAvailable + ";;;0;150; ";
                     out += "maxWait=" + highWait + "s;;;0;10;";
 
                     output.add(out);
 
-                    double percentAvailable = ((double) available / (double) highestAvailable) * 100D;
-                    double percentUnavailable = ((double) unavailable / (double) highestAvailable) * 100D;
+                    double percentAvailable = ((double) available / (double) capacity) * 100D;
+                    double percentUnavailable = ((double) unavailable / (double) capacity) * 100D;
 
                     if (percentAvailable <= 10) {
                         testCode = Status.CRITICAL.getCode();
